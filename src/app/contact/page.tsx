@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { ContactForm } from "@/components/contact-form";
 
 export const metadata: Metadata = {
   title: "Contact | gpburton",
@@ -9,10 +10,7 @@ export default function Home() {
   return (
     <main className="container mt-5 mb-20 flex flex-col gap-14">
       <h1 className="text-4xl">Contact</h1>
-      <div>
-        <p>Contact form...</p>
-        {/* <ContactForm /> */}
-      </div>
+      <ContactForm />
     </main>
   );
 }
