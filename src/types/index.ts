@@ -1,3 +1,41 @@
+/******************* SPOTIFY TYPES *****************/
+export type SpotifyTrack = {
+  type: "track";
+  name: string;
+  duration_ms: number;
+  artists: Array<{ name: string }>;
+  album: {
+    name: string;
+    release_date: string;
+    total_tracks: number;
+    images: Array<{ url: string }>;
+  };
+  track_number: number;
+  external_urls: { spotify: string };
+};
+
+export type PlaybackResponse = {
+  is_playing?: boolean;
+  progress_ms?: number | null;
+  item?: SpotifyTrack | { type?: string } | null;
+};
+
+export type CurrentlyPlayingResponse = {
+  active: boolean;
+  artistName: string;
+  trackName: string;
+  trackNumber: number;
+  trackUrl: string;
+  albumArtUrl: string;
+  albumName: string;
+  albumReleaseDate: string;
+  albumTotalTracks: number;
+  progressMs: number;
+  durationMs: number;
+  fetchedAt: number;
+};
+/**************************************************/
+
 type Link = {
   external: boolean;
   url: string;

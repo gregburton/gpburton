@@ -4,6 +4,7 @@ import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import StackHighlight from "@/components/stack-highlight";
 import tools from "@/lib/tools";
+import SpotifyWidget from "@/components/spotify-widget";
 
 export const metadata: Metadata = {
   title: "Home | gpburton",
@@ -14,6 +15,7 @@ export const metadata: Metadata = {
 export default function Home() {
   return (
     <main className="container mt-5 mb-20 flex flex-col gap-14">
+      <SpotifyWidget />
       {/* Project Highlights */}
       <div>
         <h3 className="text-2xl mb-2">Stuff I&apos;ve built</h3>
