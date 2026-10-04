@@ -17,7 +17,7 @@ import {
   CardHeader,
 } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
-import { CurrentlyPlayingResponse } from "@/types";
+import { CurrentlyQueuedResponse } from "@/types";
 
 /**
  * @link https://developer.spotify.com/documentation/design
@@ -26,10 +26,10 @@ export function SpotifyWidgetClient({
   initialData,
   authUrl,
 }: {
-  initialData: CurrentlyPlayingResponse;
+  initialData: CurrentlyQueuedResponse;
   authUrl: string;
 }) {
-  const [track, setTrack] = useState(initialData);
+  const [queue, setQueue] = useState(initialData);
 
   // const estimatedProgress = Math.min(
   //   nowPlaying.durationMs,
@@ -38,12 +38,12 @@ export function SpotifyWidgetClient({
 
   useEffect(() => {
     const update = async () => {
-      const response = await fetch("/api/spotify/currently-playing", {
+      const response = await fetch("/api/spotify/queue", {
         cache: "no-store",
       });
 
       if (response.ok) {
-        setTrack(await response.json());
+        setQueue(await response.json());
       }
     };
 
@@ -52,52 +52,91 @@ export function SpotifyWidgetClient({
     return () => clearInterval(interval);
   }, []);
 
-  if (track.active) {
+  if (queue.currently_playing.active) {
     return (
-      <Card className="p-0 w-full max-w-75">
-        <CardHeader className="p-0">
-          <Image
-            loading="eager"
-            src={track.albumArtUrl}
-            alt={track.artistName + " - " + track.trackName}
-            width={300}
-            height={300}
-          />
-        </CardHeader>
-        <CardContent>
-          <p>I&apos;m currently listening to:</p>
-          <p className="flex items-center gap-x-2">
-            <MusicIcon className="flex-none" /> {track.trackName}
-          </p>
-          <p className="flex items-center gap-x-2">
-            <User2Icon className="flex-none" /> {track.artistName}
-          </p>
-          <p className="flex items-center gap-x-2">
-            <Disc3Icon className="flex-none" /> {track.albumName}
-          </p>
-        </CardContent>
-        <CardFooter className="pb-5 justify-center">
-          <a
-            href={track.trackUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-muted-foreground flex flex-col items-center"
-          >
-            <span>Listen on</span>
+      <div>
+        <Card className="p-0 w-full max-w-75">
+          <CardHeader className="p-0">
             <Image
               loading="eager"
-              src="/images/logos/spotify/Full_Logo_Green_RGB.svg"
-              alt="Spotify Full Logo - Green"
-              width={150}
-              height={150}
+              src={queue.currently_playing.albumArtUrl}
+              alt={
+                queue.currently_playing.artistName +
+                " - " +
+                queue.currently_playing.trackName
+              }
+              width={300}
+              height={300}
             />
-          </a>
-        </CardFooter>
-      </Card>
+          </CardHeader>
+          <CardContent>
+            <p>I&apos;m currently listening to:</p>
+            <p className="flex items-center gap-x-2">
+              <MusicIcon className="flex-none" />{" "}
+              {queue.currently_playing.trackName}
+            </p>
+            <p className="flex items-center gap-x-2">
+              <User2Icon className="flex-none" />{" "}
+              {queue.currently_playing.artistName}
+            </p>
+            <p className="flex items-center gap-x-2">
+              <Disc3Icon className="flex-none" />{" "}
+              {queue.currently_playing.albumName}
+            </p>
+          </CardContent>
+          <CardFooter className="pb-5 justify-center">
+            <a
+              href={queue.currently_playing.trackUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-muted-foreground flex flex-col items-center"
+            >
+              <span>Listen on</span>
+              <Image
+                loading="eager"
+                src="/images/logos/spotify/Full_Logo_Green_RGB.svg"
+                alt="Spotify Full Logo - Green"
+                width={150}
+                height={150}
+              />
+            </a>
+          </CardFooter>
+        </Card>
+        <Card>
+          <CardHeader>Up Next</CardHeader>
+          <CardContent>
+            <ul className="divide-y divide-muted-foreground">
+              {queue.queue.map((track) => (
+                <li key={track.trackName}>
+                  <a
+                    href={track.trackUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-x-4 hover:bg-accent transition-colors"
+                  >
+                    <Image
+                      src={track.albumArtUrl}
+                      alt={track.artistName + " - " + track.trackName}
+                      width={50}
+                      height={50}
+                    />
+                    <div>
+                      <p className="text-lg">{track.trackName}</p>
+                      <p className="text-muted-foreground">
+                        {track.artistName}
+                      </p>
+                    </div>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
-  if (!track.active) {
+  if (!queue.currently_playing.active) {
     return (
       <Card className="p-0 w-full max-w-75">
         <CardHeader className="p-0 w-75 h-75 flex items-center justify-center bg-accent">

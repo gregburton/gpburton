@@ -20,6 +20,11 @@ export type PlaybackResponse = {
   item?: SpotifyTrack | { type?: string } | null;
 };
 
+export type QueueResponse = {
+  currently_playing?: SpotifyTrack | null;
+  queue: SpotifyTrack[] | [];
+};
+
 export type CurrentlyPlayingResponse = {
   active: boolean;
   artistName: string;
@@ -33,6 +38,35 @@ export type CurrentlyPlayingResponse = {
   progressMs: number;
   durationMs: number;
   fetchedAt: number;
+};
+
+export type CurrentlyQueuedResponse = {
+  fetchedAt: number;
+  currently_playing: {
+    active: boolean;
+    artistName: string;
+    trackName: string;
+    trackNumber: number;
+    trackUrl: string;
+    albumArtUrl: string;
+    albumName: string;
+    albumReleaseDate: string;
+    albumTotalTracks: number;
+    progressMs: number;
+    durationMs: number;
+  };
+  queue: {
+    artistName: string;
+    trackName: string;
+    trackNumber: number;
+    trackUrl: string;
+    albumArtUrl: string;
+    albumName: string;
+    albumReleaseDate: string;
+    albumTotalTracks: number;
+    progressMs: number;
+    durationMs: number;
+  }[];
 };
 /**************************************************/
 

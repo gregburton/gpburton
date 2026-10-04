@@ -1,4 +1,4 @@
-import { CurrentlyPlayingResponse } from "@/types";
+import { CurrentlyQueuedResponse } from "@/types";
 import { SpotifyWidgetClient } from "./spotify-widget-client";
 
 /**
@@ -18,14 +18,19 @@ export default async function SpotifyWidget() {
   const client_id = process.env.SPOTIFY_CLIENT_ID;
   const response_type = "code";
   const redirect_uri = process.env.SPOTIFY_REDIRECT_URI;
-  const scope = "user-read-currently-playing";
+  const scope =
+    "user-read-currently-playing user-read-playback-state user-read-recently-played";
   const SPOTIFY_AUTH_URL = `https://accounts.spotify.com/authorize?client_id=${client_id}&response_type=${response_type}&redirect_uri=${redirect_uri}&scope=${scope}`;
 
-  const response = await fetch(
-    process.env.BASE_URL + "/api/spotify/currently-playing",
+  // const response = await fetch(
+  //   process.env.BASE_URL + "/api/spotify/currently-playing",
+  // );
+  // const track = (await response.json()) as CurrentlyPlayingResponse;
+
+  const queueResponse = await fetch(
+    process.env.BASE_URL + "/api/spotify/queue",
   );
+  const queue = (await queueResponse.json()) as CurrentlyQueuedResponse;
 
-  const track = (await response.json()) as CurrentlyPlayingResponse;
-
-  return <SpotifyWidgetClient initialData={track} authUrl={SPOTIFY_AUTH_URL} />;
+  return <SpotifyWidgetClient initialData={queue} authUrl={SPOTIFY_AUTH_URL} />;
 }
