@@ -1,4 +1,4 @@
-import { CurrentlyQueuedResponse } from "@/types";
+import { CurrentlyQueued, PlaybackHistory } from "@/types";
 import { SpotifyWidgetClient } from "./spotify-widget-client";
 
 /**
@@ -30,7 +30,18 @@ export default async function SpotifyWidget() {
   const queueResponse = await fetch(
     process.env.BASE_URL + "/api/spotify/queue",
   );
-  const queue = (await queueResponse.json()) as CurrentlyQueuedResponse;
+  const queue = (await queueResponse.json()) as CurrentlyQueued;
 
-  return <SpotifyWidgetClient initialData={queue} authUrl={SPOTIFY_AUTH_URL} />;
+  const historyResponse = await fetch(
+    process.env.BASE_URL + "/api/spotify/history",
+  );
+  const history = (await historyResponse.json()) as PlaybackHistory;
+
+  return (
+    <SpotifyWidgetClient
+      initialQueue={queue}
+      initialHistory={history}
+      authUrl={SPOTIFY_AUTH_URL}
+    />
+  );
 }

@@ -1,18 +1,15 @@
 import { NextResponse } from "next/server";
 import { getAccessToken } from "@/lib/spotify-utils";
-import { QueueResponse, SpotifyTrack } from "@/types";
+import { QueueApiResponse, SpotifyTrack } from "@/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const inactive = (reason: string) => ({
-  active: false,
   reason,
-  progressMs: 0,
-  durationMs: 0,
   fetchedAt: Date.now(),
   currently_playing: {
-    active: true,
+    active: false,
     trackName: "",
     trackNumber: 0,
     artistName: "",
@@ -22,6 +19,14 @@ const inactive = (reason: string) => ({
     albumArtUrl: "",
     trackUrl: "",
     durationMs: 0,
+    /**
+     * progressMs isn't returned from this endpoint.
+     * This means I would need to use the '/currently_playing'
+     * endpoint in order to make a progress bar. If I did that
+     * then I would need to strip out the currently_playing info
+     * out of this route handler.
+     */
+    // progressMs: 0,
   },
   queue: [],
 });
@@ -51,7 +56,7 @@ export async function GET() {
       throw new Error(`Spotify playback request failed: ${response.status}`);
     }
 
-    const playback = (await response.json()) as QueueResponse;
+    const playback = (await response.json()) as QueueApiResponse;
     const item = playback.currently_playing;
 
     if (!item || item.type !== "track") {

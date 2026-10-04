@@ -14,18 +14,54 @@ export type SpotifyTrack = {
   external_urls: { spotify: string };
 };
 
-export type PlaybackResponse = {
+export type PlaybackApiResponse = {
   is_playing?: boolean;
   progress_ms?: number | null;
   item?: SpotifyTrack | { type?: string } | null;
 };
 
-export type QueueResponse = {
+export type QueueApiResponse = {
   currently_playing?: SpotifyTrack | null;
   queue: SpotifyTrack[] | [];
 };
 
-export type CurrentlyPlayingResponse = {
+export type HistoryApiResponse = {
+  href: string;
+  limit: number;
+  next: string;
+  cursors: {
+    after: string;
+    before: string;
+  };
+  total: number;
+  items:
+    | {
+        track: SpotifyTrack;
+        played_at: string;
+        context: {
+          type: string;
+          href: string;
+          external_urls: {
+            spotify: string;
+          };
+          uri: string;
+        };
+      }[]
+    | [];
+};
+
+export type PlaybackHistory = {
+  fetchedAt: number;
+  history: {
+    trackName: string;
+    artistName: string;
+    albumName: string;
+    albumArtUrl: string;
+    trackUrl: string;
+  }[];
+};
+
+export type CurrentlyPlaying = {
   active: boolean;
   artistName: string;
   trackName: string;
@@ -40,7 +76,7 @@ export type CurrentlyPlayingResponse = {
   fetchedAt: number;
 };
 
-export type CurrentlyQueuedResponse = {
+export type CurrentlyQueued = {
   fetchedAt: number;
   currently_playing: {
     active: boolean;
