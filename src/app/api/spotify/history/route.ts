@@ -37,7 +37,7 @@ export async function GET() {
     const history = (await response.json()) as HistoryApiResponse;
     const list = history.items;
 
-    const responseObj = list.reverse().map((item) => ({
+    const responseObj = list.map((item) => ({
       trackName: item.track.name,
       artistName: item.track.artists.map((artist) => artist.name).join(", "),
       albumName: item.track.album.name,

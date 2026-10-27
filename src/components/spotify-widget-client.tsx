@@ -11,12 +11,8 @@ import {
 } from "lucide-react";
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { buttonVariants } from "@/components/ui/button";
 import { CurrentlyQueued, PlaybackHistory } from "@/types";
 
@@ -61,163 +57,176 @@ export function SpotifyWidgetClient({
     const interval = setInterval(update, 30_000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [queue.currently_playing.active]);
 
-  if (queue.currently_playing.active) {
-    return (
-      <div>
-        <Card className="w-full p-0">
-          <CardContent className="">
-            <Accordion defaultValue={["current"]} multiple>
-              <AccordionItem value="history">
-                <AccordionContent>
-                  <ul className="divide-y divide-muted-foreground">
-                    {history.history.map((track) => (
-                      <li key={track.trackName}>
-                        <a
-                          href={track.trackUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-x-4 hover:bg-accent transition-colors decoration-0"
-                        >
-                          <Image
-                            src={track.albumArtUrl}
-                            alt={track.artistName + " - " + track.trackName}
-                            width={50}
-                            height={50}
-                          />
-                          <div>
-                            <p className="font-bold mb-0! md:font-semibold md:text-lg">
-                              {track.trackName}
-                            </p>
-                            <p className="text-muted-foreground">
-                              {track.artistName}
-                            </p>
-                          </div>
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </AccordionContent>
-                <AccordionTrigger>Previously Played</AccordionTrigger>
-              </AccordionItem>
-
-              <AccordionItem value="current">
-                {/* <AccordionTrigger>Previously Played</AccordionTrigger> */}
-                <AccordionContent className="pb-0 grid gap-4 justify-items-center grid-cols-1 md:grid-cols-[300px_1fr] md:justify-items-start">
-                  <div>
-                    <Image
-                      loading="eager"
-                      src={queue.currently_playing.albumArtUrl}
-                      alt={
-                        queue.currently_playing.artistName +
-                        " - " +
-                        queue.currently_playing.trackName
-                      }
-                      width={300}
-                      height={300}
-                    />
-                  </div>
-                  <div className="flex flex-col gap-y-4 w-full items-center justify-between md:items-start py-4">
-                    <div className="">
-                      <p>I&apos;m currently listening to:</p>
-                      <p className="flex items-center gap-x-2 md:text-3xl">
-                        <MusicIcon className="flex-none" />{" "}
-                        {queue.currently_playing.trackName}
-                      </p>
-                      <p className="flex items-center gap-x-2">
-                        <User2Icon className="flex-none" />{" "}
-                        {queue.currently_playing.artistName}
-                      </p>
-                      <p className="flex items-center gap-x-2">
-                        <Disc3Icon className="flex-none" />{" "}
-                        {queue.currently_playing.albumName}
-                      </p>
-                    </div>
-                    <div className="flex md:self-end">
-                      <a
-                        href={queue.currently_playing.trackUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-muted-foreground text-center"
-                      >
-                        <span>Listen on</span>
-                        <Image
-                          loading="eager"
-                          src="/images/logos/spotify/Full_Logo_Green_RGB.svg"
-                          alt="Spotify Full Logo - Green"
-                          width={150}
-                          height={150}
-                        />
-                      </a>
-                    </div>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="queue">
-                <AccordionTrigger>Up Next</AccordionTrigger>
-                <AccordionContent>
-                  <ul className="divide-y divide-muted-foreground">
-                    {queue.queue.map((track) => (
-                      <li key={track.trackName}>
-                        <a
-                          href={track.trackUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-x-4 hover:bg-accent transition-colors decoration-0"
-                        >
-                          <Image
-                            src={track.albumArtUrl}
-                            alt={track.artistName + " - " + track.trackName}
-                            width={50}
-                            height={50}
-                          />
-                          <div className="flex flex-col">
-                            <p className="font-bold mb-0! md:font-semibold md:text-lg">
-                              {track.trackName}
-                            </p>
-                            <p className="text-muted-foreground">
-                              {track.artistName}
-                            </p>
-                          </div>
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (!queue.currently_playing.active) {
+  if (!queue && !history) {
     return (
       <Card className="p-0 w-full max-w-75">
         <CardHeader className="p-0 w-75 h-75 flex items-center justify-center bg-accent">
-          <VolumeXIcon className="text-muted-foreground w-20 h-20" />
+          <GhostIcon className="text-muted-foreground w-20 h-20" />
         </CardHeader>
         <CardContent className="pb-5">
-          <p>I&apos;m not currently listening to anything. Check back later!</p>
+          <p>Connection to Spotify has been lost!</p>
+          <a
+            href={authUrl}
+            className={buttonVariants({ variant: "secondary" })}
+          >
+            Reconnect to Spotify
+          </a>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card className="p-0 w-full max-w-75">
-      <CardHeader className="p-0 w-75 h-75 flex items-center justify-center bg-accent">
-        <GhostIcon className="text-muted-foreground w-20 h-20" />
-      </CardHeader>
-      <CardContent className="pb-5">
-        <p>Connection to Spotify has been lost!</p>
-        <a href={authUrl} className={buttonVariants({ variant: "secondary" })}>
-          Reconnect to Spotify
-        </a>
-      </CardContent>
-    </Card>
+    <div>
+      <Card className="p-0">
+        <CardContent className="p-0 grid grid-cols-1 md:grid-cols-[350px_1fr] justify-items-center md:justify-items-start">
+          {/* Currently Playing */}
+          {queue.currently_playing.active ? (
+            <div>
+              <Image
+                loading="eager"
+                src={queue.currently_playing.albumArtUrl}
+                alt={
+                  queue.currently_playing.artistName +
+                  " - " +
+                  queue.currently_playing.trackName
+                }
+                width={300}
+                height={300}
+                className="rounded-xl mx-auto"
+              />
+              <p className="text-muted-foreground text-center pt-1 pb-2">
+                I&apos;m currently listening to:
+              </p>
+              <div className="flex flex-col gap-y-5 w-full items-center px-4">
+                <div className="space-y-2">
+                  <p className="flex items-center gap-x-2 text-xl">
+                    <MusicIcon className="flex-none" />{" "}
+                    {queue.currently_playing.trackName}
+                  </p>
+                  <p className="flex items-center gap-x-2">
+                    <User2Icon className="flex-none" />{" "}
+                    {queue.currently_playing.artistName}
+                  </p>
+                  <p className="flex items-center gap-x-2">
+                    <Disc3Icon className="flex-none" />{" "}
+                    {queue.currently_playing.albumName}
+                  </p>
+                </div>
+                <div className="flex hover:underline">
+                  <a
+                    href={queue.currently_playing.trackUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground"
+                  >
+                    <span className="relative top-2 left-13 block w-full">
+                      Listen on
+                    </span>
+                    <Image
+                      loading="eager"
+                      src="/images/logos/spotify/Full_Logo_Green_RGB.svg"
+                      alt="Spotify Full Logo - Green"
+                      width={150}
+                      height={150}
+                    />
+                  </a>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <div className="p-0 w-full max-w-75 h-75 flex items-center justify-center bg-accent rounded-xl mx-auto md:mx-0">
+                <VolumeXIcon className="text-muted-foreground w-20 h-20" />
+              </div>
+              <div className="px-8">
+                <p className="text-muted-foreground pt-1 pb-2">
+                  I&apos;m not currently listening to anything. Check back
+                  later!
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Tabs */}
+          <Tabs
+            defaultValue={queue.currently_playing.active ? "queue" : "history"}
+            className="justify-self-stretch"
+          >
+            <TabsList>
+              <TabsTrigger
+                value="queue"
+                disabled={!queue.currently_playing.active}
+              >
+                Up Next
+              </TabsTrigger>
+              <TabsTrigger value="history">Previously Played</TabsTrigger>
+            </TabsList>
+            <ScrollArea className="h-127.25 w-full">
+              <TabsContent value="queue">
+                <ul className="divide-y divide-muted-foreground">
+                  {queue.queue.map((track, index) => (
+                    <li key={`${track.trackName}-${index}`}>
+                      <a
+                        href={track.trackUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-x-4 hover:bg-accent transition-colors decoration-0"
+                      >
+                        <Image
+                          src={track.albumArtUrl}
+                          alt={track.artistName + " - " + track.trackName}
+                          width={50}
+                          height={50}
+                        />
+                        <div className="flex flex-col">
+                          <p className="font-bold mb-0! md:font-semibold lg:text-lg">
+                            {track.trackName}
+                          </p>
+                          <p className="text-muted-foreground">
+                            {track.artistName}
+                          </p>
+                        </div>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </TabsContent>
+              <TabsContent value="history">
+                <ul className="divide-y divide-muted-foreground">
+                  {history.history.map((track, index) => (
+                    <li key={`${track.trackName}-${index}`}>
+                      <a
+                        href={track.trackUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-x-4 hover:bg-accent transition-colors decoration-0"
+                      >
+                        <Image
+                          src={track.albumArtUrl}
+                          alt={track.artistName + " - " + track.trackName}
+                          width={50}
+                          height={50}
+                        />
+                        <div>
+                          <p className="font-bold mb-0! md:font-semibold lg:text-lg">
+                            {track.trackName}
+                          </p>
+                          <p className="text-muted-foreground">
+                            {track.artistName}
+                          </p>
+                        </div>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </TabsContent>
+            </ScrollArea>
+          </Tabs>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
