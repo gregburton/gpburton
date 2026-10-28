@@ -15,10 +15,11 @@ export default function Projects() {
       <h1 className="text-4xl">Projects</h1>
       {projects?.length > 0 && (
         <ul className="grid grid-cols-1 sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-10">
-          {projects.map((project) => (
+          {projects.slice(0, 1).map((project) => (
             <li key={project.name}>
               <ProjectCard
                 name={project.name}
+                featured={project.featured}
                 image={project.image}
                 description={project.description}
                 link={project.link}

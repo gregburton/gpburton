@@ -77,6 +77,15 @@ export default [
     category: "State Management",
   },
   {
+    image: "/images/logos/zustand-logo.png",
+    altText: "Zustand Logo",
+    title: "Zustand",
+    subtitle:
+      "A small, fast, and scalable bearbones state management solution.",
+    url: "https://zustand-demo.pmnd.rs/",
+    category: "State Management",
+  },
+  {
     image: "/images/logos/redux-logo.png",
     altText: "Redux Toolkit Logo",
     title: "Redux Toolkit",

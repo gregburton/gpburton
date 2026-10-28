@@ -144,6 +144,7 @@ export type ProjectProps = {
   image: string;
   name: string;
   description: string;
+  featured: boolean;
   tools: ToolProps[];
   link?: Link;
 };

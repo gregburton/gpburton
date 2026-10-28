@@ -81,7 +81,7 @@ export function SpotifyWidgetClient({
   return (
     <div>
       <Card className="p-0">
-        <CardContent className="p-0 grid grid-cols-1 md:grid-cols-[350px_1fr] justify-items-center md:justify-items-start">
+        <CardContent className="p-0 grid grid-cols-1 md:grid-cols-[300px_1fr] justify-items-center md:justify-items-start">
           {/* Currently Playing */}
           {queue.currently_playing.active ? (
             <div>

@@ -67,10 +67,10 @@ const ProjectCard = ({
             <p className="text-center text-muted-foreground text-xs">
               Built with
             </p>
-            <ul className="flex gap-3 justify-center">
-              {tools.map((tool) => (
-                <li key={tool.title}>
-                  <TooltipProvider delay={0}>
+            <TooltipProvider delay={0}>
+              <ul className="flex gap-3 justify-center">
+                {tools.map((tool) => (
+                  <li key={tool.title}>
                     <Tooltip>
                       <TooltipTrigger>
                         <a href={tool.url}>
@@ -88,10 +88,10 @@ const ProjectCard = ({
                         <p>{tool.title}</p>
                       </TooltipContent>
                     </Tooltip>
-                  </TooltipProvider>
-                </li>
-              ))}
-            </ul>
+                  </li>
+                ))}
+              </ul>
+            </TooltipProvider>
           </div>
         )}
       </CardFooter>

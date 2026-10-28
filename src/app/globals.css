@@ -10,6 +10,10 @@
 }
 
 @layer components {
+  .link {
+    @apply transition-all underline underline-offset-2 hover:underline-offset-4 hover:decoration-2;
+  }
+
   /* ↓ used in mdx files */
   svg.js,
   code.js {
