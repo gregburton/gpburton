@@ -1,11 +1,11 @@
-import { getBlogPosts } from "@/lib/blog-utils";
+import { getAllPosts } from "@/lib/blog-utils";
 
 export const baseUrl = "https://gpburton.com";
 
 export default async function sitemap() {
-  const blogs = getBlogPosts().map((post) => ({
+  const blogs = getAllPosts().map((post) => ({
     url: `${baseUrl}/blog/${post.slug}`,
-    lastModified: post.metadata.publishedAt,
+    lastModified: post.publishedAt,
   }));
 
   const routes = ["", "/blog"].map((route) => ({

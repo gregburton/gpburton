@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAccessToken } from "@/lib/spotify-utils";
-import { PlaybackResponse, SpotifyTrack } from "@/types";
+import { PlaybackApiResponse, SpotifyTrack } from "@/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -45,7 +45,7 @@ export async function GET() {
       throw new Error(`Spotify playback request failed: ${response.status}`);
     }
 
-    const playback = (await response.json()) as PlaybackResponse;
+    const playback = (await response.json()) as PlaybackApiResponse;
     const item = playback.item;
 
     if (!playback.is_playing || !item || item.type !== "track") {

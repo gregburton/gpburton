@@ -27,14 +27,30 @@ export default async function SpotifyWidget() {
   // );
   // const track = (await response.json()) as CurrentlyPlayingResponse;
 
+  /**
+   * Had to do some interesting error handling to fix a build error:
+   *
+   * Error occurred prerendering page "/". Read more: https://nextjs.org/docs/messages/prerender-error
+   * [TypeError: fetch failed] {
+   *   digest: '3227098399',
+   *   [cause]: AggregateError:
+   *       at ignore-listed frames {
+   *     code: 'ECONNREFUSED',
+   *     [errors]: [ [Error], [Error] ]
+   *   }
+   * }
+   */
+
   const queueResponse = await fetch(
     process.env.BASE_URL + "/api/spotify/queue",
-  );
-  const queue = (await queueResponse.json()) as CurrentlyQueued;
-
+  ).catch(() => null);
   const historyResponse = await fetch(
     process.env.BASE_URL + "/api/spotify/history",
-  );
+  ).catch(() => null);
+
+  if (!queueResponse?.ok || !historyResponse?.ok) return null;
+
+  const queue = (await queueResponse.json()) as CurrentlyQueued;
   const history = (await historyResponse.json()) as PlaybackHistory;
 
   return (

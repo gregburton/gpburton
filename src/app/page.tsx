@@ -1,5 +1,7 @@
 import { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
+import { Mail } from "lucide-react";
 import { cn } from "cn";
 
 import { buttonVariants } from "@/components/ui/button";
@@ -20,20 +22,18 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel-scale";
-import StackHighlight from "@/components/stack-highlight";
-import SpotifyWidget from "@/components/spotify-widget";
-
-import tools from "@/lib/tools";
-import { getAllPosts } from "@/lib/blog-utils";
-import { Mail } from "lucide-react";
-import projects from "@/lib/projects";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import Image from "next/image";
+import StackHighlight from "@/components/stack-highlight";
+import SpotifyWidget from "@/components/spotify-widget";
+
+import tools from "@/lib/tools";
+import { getAllPosts } from "@/lib/blog-utils";
+import projects from "@/lib/projects";
 
 export const metadata: Metadata = {
   title: "Home | gpburton",
