@@ -1,5 +1,6 @@
-import { CurrentlyQueued, PlaybackHistory } from "@/types";
 import { SpotifyWidgetClient } from "./spotify-widget-client";
+import { CurrentlyQueued, PlaybackHistory } from "@/types";
+import { SpotifyWidgetClientError } from "./spotify-widget-client-error";
 
 /**
  * ChatGPT said:
@@ -22,6 +23,11 @@ export default async function SpotifyWidget() {
     "user-read-currently-playing user-read-playback-state user-read-recently-played";
   const SPOTIFY_AUTH_URL = `https://accounts.spotify.com/authorize?client_id=${client_id}&response_type=${response_type}&redirect_uri=${redirect_uri}&scope=${scope}`;
 
+  /**
+   * The below code would only be useful if I wanted to create a
+   * progress bar that estimates where I am in a song. I may implement
+   * this at a later time.
+   */
   // const response = await fetch(
   //   process.env.BASE_URL + "/api/spotify/currently-playing",
   // );
@@ -41,23 +47,31 @@ export default async function SpotifyWidget() {
    * }
    */
 
-  const queueResponse = await fetch(
-    process.env.BASE_URL + "/api/spotify/queue",
-  ).catch(() => null);
-  const historyResponse = await fetch(
-    process.env.BASE_URL + "/api/spotify/history",
-  ).catch(() => null);
+  const [queueResponse, historyResponse] = await Promise.all([
+    fetch(process.env.BASE_URL + "/api/spotify/queue"),
+    fetch(process.env.BASE_URL + "/api/spotify/history"),
+  ]);
 
-  if (!queueResponse?.ok || !historyResponse?.ok) return null;
+  /** Connection to Spotify failed*/
+  if (!queueResponse.ok || !historyResponse.ok) {
+    return <SpotifyWidgetClientError authUrl={SPOTIFY_AUTH_URL} />;
+  }
 
   const queue = (await queueResponse.json()) as CurrentlyQueued;
   const history = (await historyResponse.json()) as PlaybackHistory;
 
-  return (
-    <SpotifyWidgetClient
-      initialQueue={queue}
-      initialHistory={history}
-      authUrl={SPOTIFY_AUTH_URL}
-    />
-  );
+  console.log(queue);
+  console.log(history);
+
+  /**
+   * The request succeeded, but there's an issue with the response.
+   * It's ok if there's no track playing. The widget will display
+   * the history instead.
+   */
+  if (queue.reason !== "NOT_PLAYING_A_TRACK" || history.reason) {
+    return <SpotifyWidgetClientError authUrl={SPOTIFY_AUTH_URL} />;
+  }
+
+  /** Everything succeeded */
+  return <SpotifyWidgetClient initialQueue={queue} initialHistory={history} />;
 }

@@ -2,18 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import {
-  User2Icon,
-  Disc3Icon,
-  MusicIcon,
-  VolumeXIcon,
-  GhostIcon,
-} from "lucide-react";
+import { User2Icon, Disc3Icon, MusicIcon, VolumeXIcon } from "lucide-react";
 
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { buttonVariants } from "@/components/ui/button";
 import { CurrentlyQueued, PlaybackHistory } from "@/types";
 
 /**
@@ -22,11 +15,9 @@ import { CurrentlyQueued, PlaybackHistory } from "@/types";
 export function SpotifyWidgetClient({
   initialQueue,
   initialHistory,
-  authUrl,
 }: {
   initialQueue: CurrentlyQueued;
   initialHistory: PlaybackHistory;
-  authUrl: string;
 }) {
   const [queue, setQueue] = useState(initialQueue);
   const [history, setHistory] = useState(initialHistory);
@@ -58,25 +49,6 @@ export function SpotifyWidgetClient({
 
     return () => clearInterval(interval);
   }, [queue.currently_playing.active]);
-
-  if (!queue && !history) {
-    return (
-      <Card className="p-0 w-full max-w-75">
-        <CardHeader className="p-0 w-75 h-75 flex items-center justify-center bg-accent">
-          <GhostIcon className="text-muted-foreground w-20 h-20" />
-        </CardHeader>
-        <CardContent className="pb-5">
-          <p>Connection to Spotify has been lost!</p>
-          <a
-            href={authUrl}
-            className={buttonVariants({ variant: "secondary" })}
-          >
-            Reconnect to Spotify
-          </a>
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
     <div>

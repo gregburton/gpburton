@@ -51,6 +51,8 @@ export type HistoryApiResponse = {
 };
 
 export type PlaybackHistory = {
+  /** A reason why the request failed */
+  reason?: string;
   fetchedAt: number;
   history: {
     trackName: string;
@@ -77,6 +79,8 @@ export type CurrentlyPlaying = {
 };
 
 export type CurrentlyQueued = {
+  /** A reason why the request failed */
+  reason?: string;
   fetchedAt: number;
   currently_playing: {
     active: boolean;
