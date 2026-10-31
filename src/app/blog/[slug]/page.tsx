@@ -60,7 +60,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   if (error) return <ErrorComponent error={error} />;
 
   return (
-    <article className="mt-5 mb-20 prose dark:prose-invert mx-auto prose-code:before:content-none prose-code:after:content-none">
+    <article className="container mt-5 mb-20 prose dark:prose-invert mx-auto prose-code:before:content-none prose-code:after:content-none">
       <Script
         id="json-ld"
         type="application/ld+json"

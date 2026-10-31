@@ -189,14 +189,14 @@ export default function Home() {
       <section>
         <h2 className="text-2xl mb-2">Project Highlights</h2>
         <Carousel opts={{ loop: true }} className="w-full">
-          <CarouselContent className="-ml-1 transform-3d">
+          <CarouselContent className="ml-0 md:-ml-1 transform-3d">
             <TooltipProvider delay={0}>
               {projects
                 .filter((p) => p.featured)
                 .map((project, index) => (
                   <CarouselItem
                     key={project.name.replaceAll(" ", "_") + `-${index}`}
-                    className="translate-z-0 basis-[55%] pl-1"
+                    className="translate-z-0 basis-[66%] md:basis-[55%] pl-0 md:pl-1"
                   >
                     <Card className="carousel-item-content">
                       <CardHeader>

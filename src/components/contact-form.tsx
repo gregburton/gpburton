@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Form, Field as FormischField, reset, useForm } from "@formisch/react";
 import type { SubmitHandler } from "@formisch/react";
+import { toast } from "sonner";
 
 import getErrorMessage from "@/lib/error-handlers";
 import { ContactFormSchema } from "@/types/schemas";
@@ -25,7 +26,6 @@ import {
 } from "@/components/ui/field";
 
 export function ContactForm() {
-  const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
   const form = useForm({
@@ -40,11 +40,9 @@ export function ContactForm() {
   const handleSubmit: SubmitHandler<typeof ContactFormSchema> = async (
     output,
   ) => {
-    setSuccessMessage("");
     setErrorMessage("");
 
     try {
-      // const response = await sendContactEmail(output);
       const res = await fetch("/api/contact", {
         method: "POST",
         body: JSON.stringify(output),
@@ -53,18 +51,19 @@ export function ContactForm() {
         const body = await res.json();
         const error_message = getErrorMessage(body.error);
         setErrorMessage(error_message || "Email could not be sent.");
+        toast.error("Your message could not be sent...");
       } else {
-        setSuccessMessage("Email Sent!");
+        toast.success("Your message has been sent!");
         handleResetForm();
       }
     } catch (error) {
       const error_message = getErrorMessage(error);
+      toast.error("Your message could not be sent...");
       setErrorMessage(error_message || "Email could not be sent.");
     }
   };
 
   function handleResetForm() {
-    setSuccessMessage("");
     setErrorMessage("");
     reset(form);
   }
@@ -151,7 +150,6 @@ export function ContactForm() {
             Reset
           </Button>
         </Field>
-        {successMessage && <p className="text-emerald-500">{successMessage}</p>}
         {errorMessage && <p className="text-red-500">{errorMessage}</p>}
       </CardFooter>
     </Card>

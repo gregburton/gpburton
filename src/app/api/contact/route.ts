@@ -11,9 +11,9 @@ export async function POST(request: Request) {
     const validated_values = v.parse(ContactFormSchema, form_values);
 
     const { data, error } = await resend.emails.send({
-      from: "Acme <onboarding@resend.dev>",
+      from: `gpburton.com <contact@gpburton.com>`,
       to: ["grepburton@gmail.com"],
-      subject: "Hello world",
+      subject: "Contact from gpburton.com",
       react: ContactEmailTemplate({ ...validated_values }),
     });
 

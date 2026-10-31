@@ -48,8 +48,8 @@ export default async function SpotifyWidget() {
    */
 
   const [queueResponse, historyResponse] = await Promise.all([
-    fetch(process.env.BASE_URL + "/api/spotify/queue"),
-    fetch(process.env.BASE_URL + "/api/spotify/history"),
+    fetch(process.env.BASE_URL + "/api/spotify/queue", { cache: "no-store" }),
+    fetch(process.env.BASE_URL + "/api/spotify/history", { cache: "no-store" }),
   ]);
 
   /** Connection to Spotify failed*/
@@ -60,15 +60,15 @@ export default async function SpotifyWidget() {
   const queue = (await queueResponse.json()) as CurrentlyQueued;
   const history = (await historyResponse.json()) as PlaybackHistory;
 
-  console.log(queue);
-  console.log(history);
-
   /**
    * The request succeeded, but there's an issue with the response.
    * It's ok if there's no track playing. The widget will display
    * the history instead.
    */
-  if (queue.reason !== "NOT_PLAYING_A_TRACK" || history.reason) {
+  if (
+    (queue.reason && queue.reason !== "NOT_PLAYING_A_TRACK") ||
+    history.reason
+  ) {
     return <SpotifyWidgetClientError authUrl={SPOTIFY_AUTH_URL} />;
   }
 
