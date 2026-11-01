@@ -2,11 +2,18 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { User2Icon, Disc3Icon, MusicIcon, VolumeXIcon } from "lucide-react";
+import {
+  User2Icon,
+  Disc3Icon,
+  MusicIcon,
+  VolumeXIcon,
+  HourglassIcon,
+} from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { formatTime } from "@/lib/time-utils";
 import { CurrentlyQueued, PlaybackHistory } from "@/types";
 
 /**
@@ -15,20 +22,32 @@ import { CurrentlyQueued, PlaybackHistory } from "@/types";
 export function SpotifyWidgetClient({
   initialQueue,
   initialHistory,
+  retryAfter,
 }: {
-  initialQueue: CurrentlyQueued;
-  initialHistory: PlaybackHistory;
+  initialQueue?: CurrentlyQueued;
+  initialHistory?: PlaybackHistory;
+  retryAfter?: number;
 }) {
   const [queue, setQueue] = useState(initialQueue);
   const [history, setHistory] = useState(initialHistory);
+  const [retryingAfter, setRetryingAfter] = useState(retryAfter);
 
   // const estimatedProgress = Math.min(
   //   nowPlaying.durationMs,
   //   nowPlaying.progressMs + (Date.now() - nowPlaying.fetchedAt),
   // );
 
+  /**
+   * Make requests to the Spotify Web API every 30 seconds.
+   * If I've been rate limited, wait until the "Retry-After"
+   * value expires before calling the API again.
+   */
   useEffect(() => {
     const update = async () => {
+      if (retryAfter) {
+        setRetryingAfter(retryAfter);
+      }
+
       const queueResponse = await fetch("/api/spotify/queue", {
         cache: "no-store",
       });
@@ -45,18 +64,104 @@ export function SpotifyWidgetClient({
       }
     };
 
-    const interval = setInterval(update, 30_000);
+    const interval = setInterval(
+      update,
+      retryAfter ? retryAfter * 1000 : 30_000,
+    );
 
     return () => clearInterval(interval);
-  }, [queue.currently_playing.active]);
+  }, [retryAfter, queue?.currently_playing.active]);
 
+  /** Handle Rate Limiting Countdown */
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>;
+    if (retryingAfter && retryingAfter > 0) {
+      timer = setTimeout(() => setRetryingAfter((c) => (c ? c - 1 : 0)), 1000);
+    }
+
+    return () => {
+      if (timer) {
+        clearTimeout(timer);
+      }
+    };
+  }, [retryAfter, retryingAfter]);
+
+  /**
+   * The queue and/or history could not be fetched.
+   * This assumes it's due to rate limiting. It made sense
+   * to me to handle this in this component rather than the
+   * dedicated error component because this component already
+   * handles calling the API on a loop.
+   */
+  if (!queue || !history) {
+    return (
+      <div>
+        <Card className="p-0">
+          <CardContent className="p-0 grid grid-cols-1 md:grid-cols-[300px_1fr] justify-items-center md:justify-items-start">
+            <div className="w-full">
+              <div className="p-0 w-full max-w-75 h-75 flex items-center justify-center bg-accent rounded-xl mx-auto md:mx-0">
+                <HourglassIcon className="text-muted-foreground w-20 h-20" />
+              </div>
+              <div className="px-8 pt-1 pb-2">
+                <p>Something went wrong.</p>
+                <p>
+                  Attemping to refetch in{" "}
+                  {retryingAfter ? formatTime(retryingAfter) : "0:00"}...
+                </p>
+              </div>
+            </div>
+
+            {/* Tabs */}
+            <Tabs defaultValue="queue" className="justify-self-stretch">
+              <TabsList>
+                <TabsTrigger value="queue">Up Next</TabsTrigger>
+                <TabsTrigger value="history">Previously Played</TabsTrigger>
+              </TabsList>
+              <TabsContent value="queue">
+                <ul className="divide-y divide-muted-foreground">
+                  {Array.from({ length: 10 }).map((_, index) => (
+                    <li key={index}>
+                      <div className="flex items-center gap-x-4">
+                        <div className="w-12.5 h-12.5 bg-accent animate-pulse" />
+                        <div className="flex flex-col flex-1 gap-y-2">
+                          <div className="h-4 w-40 bg-accent animate-pulse" />
+                          <div className="h-2 w-20 bg-accent animate-pulse" />
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </TabsContent>
+              <TabsContent value="history">
+                <ul className="divide-y divide-muted-foreground">
+                  {Array.from({ length: 10 }).map((_, index) => (
+                    <li key={index}>
+                      <div className="flex items-center gap-x-4">
+                        <div className="w-12.5 h-12.5 bg-accent animate-pulse" />
+                        <div className="flex flex-col flex-1 gap-y-2">
+                          <div className="h-4 w-40 bg-accent animate-pulse" />
+                          <div className="h-2 w-20 bg-accent animate-pulse" />
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  /** The queue and/or history was fetched and can be displayed. */
   return (
     <div>
       <Card className="p-0">
         <CardContent className="p-0 grid grid-cols-1 md:grid-cols-[300px_1fr] justify-items-center md:justify-items-start">
           {/* Currently Playing */}
           {queue.currently_playing.active ? (
-            <div>
+            <div className="w-full">
               <Image
                 loading="eager"
                 src={queue.currently_playing.albumArtUrl}
@@ -109,7 +214,7 @@ export function SpotifyWidgetClient({
               </div>
             </div>
           ) : (
-            <div>
+            <div className="w-full">
               <div className="p-0 w-full max-w-75 h-75 flex items-center justify-center bg-accent rounded-xl mx-auto md:mx-0">
                 <VolumeXIcon className="text-muted-foreground w-20 h-20" />
               </div>

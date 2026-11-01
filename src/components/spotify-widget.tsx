@@ -1,6 +1,6 @@
 import { SpotifyWidgetClient } from "./spotify-widget-client";
-import { CurrentlyQueued, PlaybackHistory } from "@/types";
 import { SpotifyWidgetClientError } from "./spotify-widget-client-error";
+import { CurrentlyQueued, PlaybackHistory } from "@/types";
 
 /**
  * ChatGPT said:
@@ -33,26 +33,27 @@ export default async function SpotifyWidget() {
   // );
   // const track = (await response.json()) as CurrentlyPlayingResponse;
 
-  /**
-   * Had to do some interesting error handling to fix a build error:
-   *
-   * Error occurred prerendering page "/". Read more: https://nextjs.org/docs/messages/prerender-error
-   * [TypeError: fetch failed] {
-   *   digest: '3227098399',
-   *   [cause]: AggregateError:
-   *       at ignore-listed frames {
-   *     code: 'ECONNREFUSED',
-   *     [errors]: [ [Error], [Error] ]
-   *   }
-   * }
-   */
-
   const [queueResponse, historyResponse] = await Promise.all([
     fetch(process.env.BASE_URL + "/api/spotify/queue", { cache: "no-store" }),
     fetch(process.env.BASE_URL + "/api/spotify/history", { cache: "no-store" }),
   ]);
 
-  /** Connection to Spotify failed*/
+  const retryAfter =
+    historyResponse.headers.get("Retry-After") ??
+    queueResponse.headers.get("Retry-After");
+
+  /** Request to Spotify failed due to rate limiting */
+  if (retryAfter) {
+    return (
+      <SpotifyWidgetClient
+        initialQueue={undefined}
+        initialHistory={undefined}
+        retryAfter={parseInt(retryAfter)}
+      />
+    );
+  }
+
+  /** Connection to Spotify failed */
   if (!queueResponse.ok || !historyResponse.ok) {
     return <SpotifyWidgetClientError authUrl={SPOTIFY_AUTH_URL} />;
   }

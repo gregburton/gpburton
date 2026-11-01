@@ -10,7 +10,7 @@ export function SpotifyWidgetClientError({ authUrl }: { authUrl: string }) {
     <div>
       <Card className="p-0">
         <CardContent className="p-0 grid grid-cols-1 md:grid-cols-[300px_1fr] justify-items-center md:justify-items-start">
-          <div>
+          <div className="w-full">
             <div className="p-0 w-full max-w-75 h-75 flex items-center justify-center bg-accent rounded-xl mx-auto md:mx-0">
               <GhostIcon className="text-muted-foreground w-20 h-20" />
             </div>
