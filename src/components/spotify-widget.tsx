@@ -38,40 +38,49 @@ export default async function SpotifyWidget() {
     fetch(process.env.BASE_URL + "/api/spotify/history", { cache: "no-store" }),
   ]);
 
-  const retryAfter =
-    historyResponse.headers.get("Retry-After") ??
-    queueResponse.headers.get("Retry-After");
-
-  /** Request to Spotify failed due to rate limiting */
-  if (retryAfter) {
-    return (
-      <SpotifyWidgetClient
-        initialQueue={undefined}
-        initialHistory={undefined}
-        retryAfter={parseInt(retryAfter)}
-      />
-    );
-  }
+  const retryAfterHistory = historyResponse.headers.get("Retry-After");
+  const retryAfterQueue = queueResponse.headers.get("Retry-After");
 
   /** Connection to Spotify failed */
-  if (!queueResponse.ok || !historyResponse.ok) {
+  if (!queueResponse.ok && !historyResponse.ok) {
     return <SpotifyWidgetClientError authUrl={SPOTIFY_AUTH_URL} />;
   }
 
   const queue = (await queueResponse.json()) as CurrentlyQueued;
   const history = (await historyResponse.json()) as PlaybackHistory;
 
-  /**
-   * The request succeeded, but there's an issue with the response.
-   * It's ok if there's no track playing. The widget will display
-   * the history instead.
-   */
-  if (
-    (queue.reason && queue.reason !== "NOT_PLAYING_A_TRACK") ||
-    history.reason
-  ) {
-    return <SpotifyWidgetClientError authUrl={SPOTIFY_AUTH_URL} />;
+  /** Request to Spotify failed due to rate limiting */
+  if (retryAfterHistory) {
+    return (
+      <SpotifyWidgetClient
+        initialQueue={queue}
+        initialHistory={undefined}
+        retryAfter={parseInt(retryAfterHistory)}
+      />
+    );
   }
+
+  if (retryAfterQueue) {
+    return (
+      <SpotifyWidgetClient
+        initialQueue={undefined}
+        initialHistory={history}
+        retryAfter={parseInt(retryAfterQueue)}
+      />
+    );
+  }
+
+  // if (
+  //   (queue.reason && queue.reason !== "NOT_PLAYING_A_TRACK") ||
+  //   history.reason
+  // ) {
+  //   /**
+  //    * The request succeeded, but there's an issue with the response.
+  //    * It's ok if there's no track playing. The widget will display
+  //    * the history instead.
+  //    */
+  //   return <SpotifyWidgetClientError authUrl={SPOTIFY_AUTH_URL} />;
+  // }
 
   /** Everything succeeded */
   return <SpotifyWidgetClient initialQueue={queue} initialHistory={history} />;

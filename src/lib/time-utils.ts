@@ -8,11 +8,14 @@ const padTime = (time: number) => {
 
 export const formatTime = (time: number) => {
   // Convert seconds into minutes and take the whole part
+  const hours = Math.floor(time / 60 / 60);
+
+  // Convert seconds into minutes and take the whole part
   const minutes = Math.floor(time / 60);
 
   // Get the seconds left after converting minutes
   const seconds = time % 60;
 
   // Return combined values as string in format mm:ss
-  return `${minutes}:${padTime(seconds)}`;
+  return `${hours}h:${minutes}m:${padTime(seconds)}s`;
 };
