@@ -25,7 +25,7 @@ export async function GET() {
     if (response.status === 429) {
       const retryAfter = response.headers.get("Retry-After");
       return NextResponse.json(fetchError("RATE_LIMITED"), {
-        status: 503,
+        status: 429,
         headers: retryAfter ? { "Retry-After": retryAfter } : undefined,
       });
     }

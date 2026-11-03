@@ -1,375 +1,206 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCountdown } from "@/hooks/use-countdown";
+import { useSpotifyPolling } from "@/hooks/use-spotify-polling";
 import Image from "next/image";
-import {
-  User2Icon,
-  Disc3Icon,
-  MusicIcon,
-  VolumeXIcon,
-  HourglassIcon,
-} from "lucide-react";
+import { User2Icon, Disc3Icon, MusicIcon, VolumeXIcon } from "lucide-react";
 
+// import { SongProgressBar } from "./spotify-song-progress";
+import { SpotifyWidgetClientSkeleton } from "@/components/spotify-widget-client-skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { formatTime } from "@/lib/time-utils";
 import { CurrentlyQueued, PlaybackHistory } from "@/types";
 
 /**
  * @link https://developer.spotify.com/documentation/design
  */
-export function SpotifyWidgetClient({
-  initialQueue,
-  initialHistory,
-  retryAfter,
-}: {
-  initialQueue?: CurrentlyQueued;
-  initialHistory?: PlaybackHistory;
-  retryAfter?: number;
-}) {
-  const [queue, setQueue] = useState(initialQueue);
-  const [history, setHistory] = useState(initialHistory);
-  const [retryingAfter, setRetryingAfter] = useState(retryAfter);
+export function SpotifyWidgetClient() {
+  const queue = useSpotifyPolling<CurrentlyQueued>("/api/spotify/queue");
+  const history = useSpotifyPolling<PlaybackHistory>("/api/spotify/history");
+  const queueCountdown = useCountdown(queue.retryAt);
+  const historyCountdown = useCountdown(history.retryAt);
 
-  // const estimatedProgress = Math.min(
-  //   nowPlaying.durationMs,
-  //   nowPlaying.progressMs + (Date.now() - nowPlaying.fetchedAt),
-  // );
-
-  /**
-   * Make requests to the Spotify Web API every 30 seconds.
-   * If I've been rate limited, wait until the "Retry-After"
-   * value expires before calling the API again.
-   */
-  useEffect(() => {
-    const update = async () => {
-      if (retryAfter) setRetryingAfter(retryAfter);
-
-      const [queueResponse, historyResponse] = await Promise.all([
-        fetch("/api/spotify/queue", { cache: "no-store" }),
-        fetch("/api/spotify/history", { cache: "no-store" }),
-      ]);
-
-      if (queueResponse.ok) {
-        setQueue(await queueResponse.json());
-      } else setQueue(undefined);
-      if (historyResponse.ok) {
-        setHistory(await historyResponse.json());
-      } else setHistory(undefined);
-
-      const updateRetryAfter =
-        queueResponse.headers.get("Retry-After") ||
-        historyResponse.headers.get("Retry-After");
-
-      console.log({
-        queueRedo: queueResponse.headers,
-        historyRedo: historyResponse.headers,
-      });
-      console.log({ updateRetryAfter });
-
-      if (updateRetryAfter) setRetryingAfter(parseInt(updateRetryAfter));
-
-      /** determine reason for error and update component accordingly */
-      /** ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ */
-    };
-
-    const interval = setInterval(
-      update,
-      retryAfter ? retryAfter * 1000 : 30_000,
-    );
-
-    return () => clearInterval(interval);
-  }, [retryAfter, queue?.currently_playing.active]);
-
-  /** Handle Rate Limiting Countdown */
-  useEffect(() => {
-    let timer: ReturnType<typeof setTimeout>;
-    if (retryingAfter && retryingAfter > 0) {
-      timer = setTimeout(() => setRetryingAfter((c) => (c ? c - 1 : 0)), 1000);
-    }
-    return () => timer && clearTimeout(timer);
-  }, [retryAfter, retryingAfter]);
-
-  /**
-   * The queue could be fetched but the history could not be fetched.
-   * I've been having a rate-limiting issue occuring every other day.
-   * Interestingly enough only the `history` endpoint is being rate
-   * limited. If this is the case then I should still show the currently
-   * playing status and handle the `history` error in its own spot instead
-   * of disabling the entire component.
-   */
-  if (queue && !history) {
-    return (
-      <div>
-        <Card className="p-0">
-          <CardContent className="p-0 grid grid-cols-1 md:grid-cols-[300px_1fr] justify-items-center md:justify-items-start">
-            {queue.currently_playing.active ? (
-              <div className="w-full">
-                <Image
-                  loading="eager"
-                  src={queue.currently_playing.albumArtUrl}
-                  alt={
-                    queue.currently_playing.artistName +
-                    " - " +
-                    queue.currently_playing.trackName
-                  }
-                  width={300}
-                  height={300}
-                  className="rounded-xl mx-auto"
-                />
-                <p className="text-muted-foreground text-center pt-1 pb-2">
-                  I&apos;m currently listening to:
-                </p>
-                <div className="flex flex-col gap-y-5 w-full items-center px-4">
-                  <div className="space-y-2">
-                    <p className="flex items-center gap-x-2 text-xl">
-                      <MusicIcon className="flex-none" />{" "}
-                      {queue.currently_playing.trackName}
-                    </p>
-                    <p className="flex items-center gap-x-2">
-                      <User2Icon className="flex-none" />{" "}
-                      {queue.currently_playing.artistName}
-                    </p>
-                    <p className="flex items-center gap-x-2">
-                      <Disc3Icon className="flex-none" />{" "}
-                      {queue.currently_playing.albumName}
-                    </p>
-                  </div>
-                  <div className="flex hover:underline">
-                    <a
-                      href={queue.currently_playing.trackUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-muted-foreground"
-                    >
-                      <span className="relative top-2 left-13 block w-full">
-                        Listen on
-                      </span>
-                      <Image
-                        loading="eager"
-                        src="/images/logos/spotify/Full_Logo_Green_RGB.svg"
-                        alt="Spotify Full Logo - Green"
-                        width={150}
-                        height={150}
-                      />
-                    </a>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="w-full">
-                <div className="p-0 w-full max-w-75 h-75 flex items-center justify-center bg-accent rounded-xl mx-auto md:mx-0">
-                  <VolumeXIcon className="text-muted-foreground w-20 h-20" />
-                </div>
-                <div className="px-8">
-                  <p className="text-muted-foreground pt-1 pb-2">
-                    I&apos;m not currently listening to anything. Check back
-                    later!
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Tabs */}
-            <Tabs
-              defaultValue={
-                queue.currently_playing.active ? "queue" : "history"
-              }
-              className="justify-self-stretch"
-            >
-              <TabsList>
-                <TabsTrigger
-                  value="queue"
-                  disabled={!queue.currently_playing.active}
-                >
-                  Up Next
-                </TabsTrigger>
-                <TabsTrigger value="history">Previously Played</TabsTrigger>
-              </TabsList>
-              <ScrollArea className="h-127.25 w-full">
-                <TabsContent value="queue">
-                  <ul className="divide-y divide-muted-foreground">
-                    {queue.queue.map((track, index) => (
-                      <li key={`${track.trackName}-${index}`}>
-                        <a
-                          href={track.trackUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-x-4 hover:bg-accent transition-colors decoration-0"
-                        >
-                          <Image
-                            src={track.albumArtUrl}
-                            alt={track.artistName + " - " + track.trackName}
-                            width={50}
-                            height={50}
-                          />
-                          <div className="flex flex-col">
-                            <p className="font-bold mb-0! md:font-semibold lg:text-lg">
-                              {track.trackName}
-                            </p>
-                            <p className="text-muted-foreground">
-                              {track.artistName}
-                            </p>
-                          </div>
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </TabsContent>
-                <TabsContent value="history">
-                  <div className="px-8 pt-1 pb-2">
-                    <p>Something went wrong.</p>
-                    <p>
-                      Attempting to refetch in{" "}
-                      {retryingAfter ? formatTime(retryingAfter) : "0:00"}...
-                    </p>
-                  </div>
-                  <ul className="divide-y divide-muted-foreground">
-                    {Array.from({ length: 8 }).map((_, index) => (
-                      <li key={index}>
-                        <div className="flex items-center gap-x-4">
-                          <div className="w-12.5 h-12.5 bg-accent animate-pulse" />
-                          <div className="flex flex-col flex-1 gap-y-2">
-                            <div className="h-4 w-40 bg-accent animate-pulse" />
-                            <div className="h-2 w-20 bg-accent animate-pulse" />
-                          </div>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </TabsContent>
-              </ScrollArea>
-            </Tabs>
-          </CardContent>
-        </Card>
-      </div>
-    );
+  if (queue.isLoading || history.isLoading) {
+    return <SpotifyWidgetClientSkeleton />;
   }
 
-  /** The queue and/or history was fetched and can be displayed. */
-  if (queue && history) {
-    return (
-      <div>
-        <Card className="p-0">
-          <CardContent className="p-0 grid grid-cols-1 md:grid-cols-[300px_1fr] justify-items-center md:justify-items-start">
-            {/* Currently Playing */}
-            {queue.currently_playing.active ? (
-              <div className="w-full">
-                <Image
-                  loading="eager"
-                  src={queue.currently_playing.albumArtUrl}
-                  alt={
-                    queue.currently_playing.artistName +
-                    " - " +
-                    queue.currently_playing.trackName
-                  }
-                  width={300}
-                  height={300}
-                  className="rounded-xl mx-auto"
-                />
-                <p className="text-muted-foreground text-center pt-1 pb-2">
-                  I&apos;m currently listening to:
-                </p>
-                <div className="flex flex-col gap-y-5 w-full items-center px-4">
-                  <div className="space-y-2">
-                    <p className="flex items-center gap-x-2 text-xl">
-                      <MusicIcon className="flex-none" />{" "}
-                      {queue.currently_playing.trackName}
-                    </p>
-                    <p className="flex items-center gap-x-2">
-                      <User2Icon className="flex-none" />{" "}
-                      {queue.currently_playing.artistName}
-                    </p>
-                    <p className="flex items-center gap-x-2">
-                      <Disc3Icon className="flex-none" />{" "}
-                      {queue.currently_playing.albumName}
-                    </p>
-                  </div>
-                  <div className="flex hover:underline">
-                    <a
-                      href={queue.currently_playing.trackUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-muted-foreground"
-                    >
-                      <span className="relative top-2 left-13 block w-full">
-                        Listen on
-                      </span>
-                      <Image
-                        loading="eager"
-                        src="/images/logos/spotify/Full_Logo_Green_RGB.svg"
-                        alt="Spotify Full Logo - Green"
-                        width={150}
-                        height={150}
-                      />
-                    </a>
-                  </div>
-                </div>
+  return (
+    <div>
+      <Card className="p-0">
+        <CardContent className="p-0 grid grid-cols-1 md:grid-cols-[300px_1fr] justify-items-center md:justify-items-start">
+          {queue.error ? (
+            <div className="w-full">
+              <div className="p-0 w-full max-w-75 h-75 flex items-center justify-center bg-accent rounded-xl mx-auto md:mx-0">
+                <VolumeXIcon className="text-muted-foreground w-20 h-20" />
               </div>
-            ) : (
-              <div className="w-full">
-                <div className="p-0 w-full max-w-75 h-75 flex items-center justify-center bg-accent rounded-xl mx-auto md:mx-0">
-                  <VolumeXIcon className="text-muted-foreground w-20 h-20" />
-                </div>
-                <div className="px-8">
-                  <p className="text-muted-foreground pt-1 pb-2">
-                    I&apos;m not currently listening to anything. Check back
-                    later!
+              <div className="px-8 pt-1 pb-2">
+                <p>Something went wrong.</p>
+                <p className="text-red-400">{queue.error}</p>
+                {queueCountdown && (
+                  <p>Attempting to refetch in {queueCountdown}</p>
+                )}
+              </div>
+            </div>
+          ) : !queue.data ? (
+            <div className="w-full">
+              <div className="p-0 w-full max-w-75 h-75 flex items-center justify-center bg-accent rounded-xl mx-auto md:mx-0">
+                <VolumeXIcon className="text-muted-foreground w-20 h-20" />
+              </div>
+              <div className="px-8 pt-1 pb-2">
+                <p>Something went wrong.</p>
+                <p className="text-red-400">No data to display...</p>
+              </div>
+            </div>
+          ) : queue.data.currently_playing.active ? (
+            <div className="w-full">
+              <Image
+                loading="eager"
+                src={queue.data.currently_playing.albumArtUrl}
+                alt={
+                  queue.data.currently_playing.artistName +
+                  " - " +
+                  queue.data.currently_playing.trackName
+                }
+                width={300}
+                height={300}
+                className="rounded-xl mx-auto"
+              />
+              {/* <SongProgressBar
+                progressMs={queue.data.currently_playing.progressMs ?? null}
+                durationMs={queue.data.currently_playing.durationMs ?? null}
+                fetchedAt={queue.data.fetchedAt ?? 0}
+                isPlaying={queue.data.currently_playing.active ?? false}
+              /> */}
+              <p className="text-muted-foreground text-center pt-1 pb-2">
+                I&apos;m currently listening to:
+              </p>
+              <div className="flex flex-col gap-y-5 w-full items-center px-4">
+                <div className="space-y-2">
+                  <p className="flex items-center gap-x-2 text-xl">
+                    <MusicIcon className="flex-none" />{" "}
+                    {queue.data.currently_playing.trackName}
+                  </p>
+                  <p className="flex items-center gap-x-2">
+                    <User2Icon className="flex-none" />{" "}
+                    {queue.data.currently_playing.artistName}
+                  </p>
+                  <p className="flex items-center gap-x-2">
+                    <Disc3Icon className="flex-none" />{" "}
+                    {queue.data.currently_playing.albumName}
                   </p>
                 </div>
+                <div className="flex hover:underline">
+                  <a
+                    href={queue.data.currently_playing.trackUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground"
+                  >
+                    <span className="relative top-2 left-13 block w-full">
+                      Listen on
+                    </span>
+                    <Image
+                      loading="eager"
+                      src="/images/logos/spotify/Full_Logo_Green_RGB.svg"
+                      alt="Spotify Full Logo - Green"
+                      width={150}
+                      height={150}
+                    />
+                  </a>
+                </div>
               </div>
-            )}
+            </div>
+          ) : (
+            <div className="w-full">
+              <div className="p-0 w-full max-w-75 h-75 flex items-center justify-center bg-accent rounded-xl mx-auto md:mx-0">
+                <VolumeXIcon className="text-muted-foreground w-20 h-20" />
+              </div>
+              <div className="px-8">
+                <p className="text-muted-foreground pt-1 pb-2">
+                  I&apos;m not currently listening to anything. Check back
+                  later!
+                </p>
+              </div>
+            </div>
+          )}
 
-            {/* Tabs */}
-            <Tabs
-              defaultValue={
-                queue.currently_playing.active ? "queue" : "history"
-              }
-              className="justify-self-stretch"
-            >
-              <TabsList>
-                <TabsTrigger
-                  value="queue"
-                  disabled={!queue.currently_playing.active}
-                >
-                  Up Next
-                </TabsTrigger>
-                <TabsTrigger value="history">Previously Played</TabsTrigger>
-              </TabsList>
-              <ScrollArea className="h-127.25 w-full">
-                <TabsContent value="queue">
-                  <ul className="divide-y divide-muted-foreground">
-                    {queue.queue.map((track, index) => (
-                      <li key={`${track.trackName}-${index}`}>
-                        <a
-                          href={track.trackUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-x-4 hover:bg-accent transition-colors decoration-0"
-                        >
-                          <Image
-                            src={track.albumArtUrl}
-                            alt={track.artistName + " - " + track.trackName}
-                            width={50}
-                            height={50}
-                          />
-                          <div className="flex flex-col">
-                            <p className="font-bold mb-0! md:font-semibold lg:text-lg">
-                              {track.trackName}
-                            </p>
-                            <p className="text-muted-foreground">
-                              {track.artistName}
-                            </p>
+          <Tabs
+            defaultValue={
+              queue.data?.currently_playing.active ? "queue" : "history"
+            }
+            className="justify-self-stretch"
+          >
+            <TabsList>
+              <TabsTrigger
+                value="queue"
+                disabled={!queue.data?.currently_playing.active}
+              >
+                Up Next
+              </TabsTrigger>
+              <TabsTrigger value="history">Previously Played</TabsTrigger>
+            </TabsList>
+            <ScrollArea className="h-127.25 w-full">
+              <TabsContent value="queue">
+                <ul className="divide-y divide-muted-foreground">
+                  {queue.data?.queue.map((track, index) => (
+                    <li key={`${track.trackName}-${index}`}>
+                      <a
+                        href={track.trackUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-x-4 hover:bg-accent transition-colors decoration-0"
+                      >
+                        <Image
+                          src={track.albumArtUrl}
+                          alt={track.artistName + " - " + track.trackName}
+                          width={50}
+                          height={50}
+                        />
+                        <div className="flex flex-col">
+                          <p className="font-bold mb-0! md:font-semibold lg:text-lg">
+                            {track.trackName}
+                          </p>
+                          <p className="text-muted-foreground">
+                            {track.artistName}
+                          </p>
+                        </div>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </TabsContent>
+              <TabsContent value="history">
+                {history.error ? (
+                  <>
+                    <div className="px-8 pt-1 pb-2">
+                      <p className="text-red-400">{history.error}</p>
+                      {historyCountdown && (
+                        <p>Attempting to refetch in {historyCountdown}</p>
+                      )}
+                    </div>
+                    <ul className="divide-y divide-muted-foreground">
+                      {Array.from({ length: 8 }).map((_, index) => (
+                        <li key={index}>
+                          <div className="flex items-center gap-x-4">
+                            <div className="w-12.5 h-12.5 bg-accent animate-pulse" />
+                            <div className="flex flex-col flex-1 gap-y-2">
+                              <div className="h-4 w-40 bg-accent animate-pulse" />
+                              <div className="h-2 w-20 bg-accent animate-pulse" />
+                            </div>
                           </div>
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </TabsContent>
-                <TabsContent value="history">
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                ) : !history.data ? (
+                  <div className="px-8 pt-1 pb-2">
+                    <p>Something went wrong.</p>
+                    <p className="text-red-400">No data to display...</p>
+                  </div>
+                ) : (
                   <ul className="divide-y divide-muted-foreground">
-                    {history.history.map((track, index) => (
+                    {history.data.history.map((track, index) => (
                       <li key={`${track.trackName}-${index}`}>
                         <a
                           href={track.trackUrl}
@@ -395,84 +226,12 @@ export function SpotifyWidgetClient({
                       </li>
                     ))}
                   </ul>
-                </TabsContent>
-              </ScrollArea>
-            </Tabs>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  /**
-   * The queue and history could not be fetched.
-   * This assumes it's due to rate limiting. It made sense
-   * to me to handle this in this component rather than the
-   * dedicated error component because this component already
-   * handles calling the API on a loop.
-   */
-  if (!queue && !history) {
-    return (
-      <div>
-        <Card className="p-0">
-          <CardContent className="p-0 grid grid-cols-1 md:grid-cols-[300px_1fr] justify-items-center md:justify-items-start">
-            <div className="w-full">
-              <div className="p-0 w-full max-w-75 h-75 flex items-center justify-center bg-accent rounded-xl mx-auto md:mx-0">
-                <HourglassIcon className="text-muted-foreground w-20 h-20" />
-              </div>
-              <div className="px-8 pt-1 pb-2">
-                <p>Something went wrong.</p>
-                <p>
-                  Attempting to refetch in{" "}
-                  {retryingAfter ? formatTime(retryingAfter) : "0:00"}...
-                </p>
-              </div>
-            </div>
-
-            {/* Tabs */}
-            <Tabs defaultValue="queue" className="justify-self-stretch">
-              <TabsList>
-                <TabsTrigger value="queue">Up Next</TabsTrigger>
-                <TabsTrigger value="history">Previously Played</TabsTrigger>
-              </TabsList>
-              <TabsContent value="queue">
-                <ul className="divide-y divide-muted-foreground">
-                  {Array.from({ length: 10 }).map((_, index) => (
-                    <li key={index}>
-                      <div className="flex items-center gap-x-4">
-                        <div className="w-12.5 h-12.5 bg-accent animate-pulse" />
-                        <div className="flex flex-col flex-1 gap-y-2">
-                          <div className="h-4 w-40 bg-accent animate-pulse" />
-                          <div className="h-2 w-20 bg-accent animate-pulse" />
-                        </div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
+                )}
               </TabsContent>
-              <TabsContent value="history">
-                <ul className="divide-y divide-muted-foreground">
-                  {Array.from({ length: 10 }).map((_, index) => (
-                    <li key={index}>
-                      <div className="flex items-center gap-x-4">
-                        <div className="w-12.5 h-12.5 bg-accent animate-pulse" />
-                        <div className="flex flex-col flex-1 gap-y-2">
-                          <div className="h-4 w-40 bg-accent animate-pulse" />
-                          <div className="h-2 w-20 bg-accent animate-pulse" />
-                        </div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  /** An unknown error has occurred. Don't display the component. */
-  console.error("Unhanded Spotify Error - Time to do some troubleshooting!");
-  return null;
+            </ScrollArea>
+          </Tabs>
+        </CardContent>
+      </Card>
+    </div>
+  );
 }

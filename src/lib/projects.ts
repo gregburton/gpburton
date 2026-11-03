@@ -4,12 +4,12 @@ export default [
   {
     name: "roygbiv",
     featured: true,
-    image: "/images/projects/placeholder.jpg",
+    image: "/images/projects/roygbiv.jpg",
     description:
       "This website converts a color into another format. Useful while graphic designing!",
     link: {
-      external: false,
-      url: "/",
+      external: true,
+      url: "https://roygbiv.gpburton.com",
     },
     tools: [
       {
@@ -33,12 +33,12 @@ export default [
   {
     name: "roygbiv",
     featured: true,
-    image: "/images/projects/placeholder.jpg",
+    image: "/images/projects/roygbiv.jpg",
     description:
       "This website converts a color into another format. Useful while graphic designing!",
     link: {
-      external: false,
-      url: "/",
+      external: true,
+      url: "https://roygbiv.gpburton.com",
     },
     tools: [
       {
@@ -61,12 +61,12 @@ export default [
   {
     name: "roygbiv",
     featured: true,
-    image: "/images/projects/placeholder.jpg",
+    image: "/images/projects/roygbiv.jpg",
     description:
       "This website converts a color into another format. Useful while graphic designing!",
     link: {
-      external: false,
-      url: "/",
+      external: true,
+      url: "https://roygbiv.gpburton.com",
     },
     tools: [
       {

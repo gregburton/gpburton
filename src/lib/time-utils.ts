@@ -1,21 +1,24 @@
-// https://stackoverflow.com/a/61791550
+/**
+ * @description Makes sure the spotify polling hook supports
+ * both formats of Retry-After (number or date) when calculating
+ * the deadline.
+ * @param retryAfter Number or date value in string format
+ * @returns A number
+ */
+export function getRetryDelayMs(retryAfter: string | null): number {
+  if (!retryAfter) return 60_000;
 
-// Prepend `0` for one digit numbers. For that the number has to be
-// converted to string, as numbers don't have length method
-const padTime = (time: number) => {
-  return String(time).length === 1 ? `0${time}` : `${time}`;
-};
+  const seconds = Number(retryAfter);
 
-export const formatTime = (time: number) => {
-  // Convert seconds into minutes and take the whole part
-  const hours = Math.floor(time / 60 / 60);
+  if (retryAfter.trim() !== "" && Number.isFinite(seconds) && seconds >= 0) {
+    return seconds * 1000;
+  }
 
-  // Convert seconds into minutes and take the whole part
-  const minutes = Math.floor(time / 60);
+  const retryDate = Date.parse(retryAfter);
 
-  // Get the seconds left after converting minutes
-  const seconds = time % 60;
+  if (!Number.isNaN(retryDate)) {
+    return Math.max(0, retryDate - Date.now());
+  }
 
-  // Return combined values as string in format mm:ss
-  return `${hours}h:${minutes}m:${padTime(seconds)}s`;
-};
+  return 60_000;
+}

@@ -92,7 +92,6 @@ export type CurrentlyQueued = {
     albumName: string;
     albumReleaseDate: string;
     albumTotalTracks: number;
-    progressMs: number;
     durationMs: number;
   };
   queue: {
@@ -104,7 +103,6 @@ export type CurrentlyQueued = {
     albumName: string;
     albumReleaseDate: string;
     albumTotalTracks: number;
-    progressMs: number;
     durationMs: number;
   }[];
 };

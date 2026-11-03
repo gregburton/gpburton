@@ -1,6 +1,5 @@
 import qs from "node:querystring";
 import { NextResponse, type NextRequest } from "next/server";
-// import chalk from "chalk";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -29,9 +28,6 @@ export async function GET(request: NextRequest) {
       redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
     }),
   });
-
-  // const body = await response.json();
-  // console.log(chalk.green(JSON.stringify(body, null, 2)));
 
   return NextResponse.redirect(
     request.nextUrl.origin || "http://localhost:3000",

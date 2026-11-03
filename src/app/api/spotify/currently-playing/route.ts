@@ -12,7 +12,6 @@ const inactive = (reason: string) => ({
   artistName: "",
   albumArtUrl: "",
   trackUrl: "",
-  progressMs: 0,
   durationMs: 0,
   fetchedAt: Date.now(),
 });
@@ -64,7 +63,6 @@ export async function GET() {
       albumTotalTracks: track.album.total_tracks,
       albumArtUrl: track.album.images[0]?.url ?? "",
       trackUrl: track.external_urls.spotify,
-      progressMs: playback.progress_ms ?? 0,
       durationMs: track.duration_ms,
       fetchedAt: Date.now(),
     });
