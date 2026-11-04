@@ -17,15 +17,11 @@ function formatTime(ms: number) {
   return `${minutes}:${String(seconds).padStart(2, "0")}`;
 }
 /**
- * This component won't actually work unless I make use of the
- * currently unused "/api/spotify/currently-playing" route.
  * The "/api/spotify/queue" route that displays the current song
  * as well as the queue does NOT return the current song's
- * critical `progressMs` value. I'd hate to have to call 3 endpoints
- * every 30s for all this, but I may end up doing it anyway.
- * It would require a bit of route handler refactoring, but the end
- * result would be kinda cool as long as I'm not constantly hit with
- * rate limiting issues...
+ * critical `progressMs` value.
+ * The end result would be kinda cool as long as I'm not constantly
+ * hit with rate limiting issues...
  */
 export function SongProgressBar({
   progressMs,
@@ -45,7 +41,7 @@ export function SongProgressBar({
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full max-w-75 mx-auto mt-2">
       <div
         role="progressbar"
         aria-label="Song progress"

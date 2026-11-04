@@ -12,6 +12,7 @@ const inactive = (reason: string) => ({
   artistName: "",
   albumArtUrl: "",
   trackUrl: "",
+  progressMs: 0,
   durationMs: 0,
   fetchedAt: Date.now(),
 });
@@ -27,19 +28,39 @@ export async function GET() {
       },
     );
 
-    // Treat an empty upstream response as a normal inactive state.
+    /** Treat an empty upstream response as a normal inactive state. */
     if (response.status === 204) {
       return NextResponse.json(inactive("NO_ACTIVE_PLAYBACK"));
     }
-
+    /** Bad request */
+    if (response.status === 400) {
+      return NextResponse.json(inactive("BAD_REQUEST"), { status: 400 });
+    }
+    /** Authorization problem */
+    if (response.status === 401) {
+      return NextResponse.json(inactive("UNAUTHORIZED"), { status: 401 });
+    }
+    /** Rate limited */
     if (response.status === 429) {
       const retryAfter = response.headers.get("Retry-After");
       return NextResponse.json(inactive("RATE_LIMITED"), {
-        status: 503,
+        status: 429,
         headers: retryAfter ? { "Retry-After": retryAfter } : undefined,
       });
     }
-
+    /** Unknown server error - Spotify claims this should never happen and to contact them if it does */
+    if (response.status === 500) {
+      return NextResponse.json(inactive("INTERNAL_SERVER_ERROR"), {
+        status: 500,
+      });
+    }
+    /** Spotify's servers are temporarily unavailable */
+    if (response.status === 503) {
+      return NextResponse.json(inactive("SERVICE_UNAVAILABLE"), {
+        status: 503,
+      });
+    }
+    /** An unhandled error occured */
     if (!response.ok) {
       throw new Error(`Spotify playback request failed: ${response.status}`);
     }
@@ -63,11 +84,12 @@ export async function GET() {
       albumTotalTracks: track.album.total_tracks,
       albumArtUrl: track.album.images[0]?.url ?? "",
       trackUrl: track.external_urls.spotify,
+      progressMs: playback.progress_ms,
       durationMs: track.duration_ms,
       fetchedAt: Date.now(),
     });
   } catch (error) {
     console.error("Spotify now-playing sync failed", error);
-    return NextResponse.json(inactive("SPOTIFY_UNAVAILABLE"));
+    return NextResponse.json(inactive("SPOTIFY_UNAVAILABLE"), { status: 500 });
   }
 }

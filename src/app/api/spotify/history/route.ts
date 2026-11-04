@@ -50,7 +50,7 @@ export async function GET() {
       history: responseObj,
     });
   } catch (error) {
-    console.error("Spotify now-playing sync failed", error);
+    console.error("Spotify history sync failed", error);
     return NextResponse.json(fetchError("SPOTIFY_UNAVAILABLE"));
   }
 }
