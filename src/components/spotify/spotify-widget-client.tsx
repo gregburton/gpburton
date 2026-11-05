@@ -6,7 +6,7 @@ import Image from "next/image";
 import { User2Icon, Disc3Icon, MusicIcon, VolumeXIcon } from "lucide-react";
 
 import { SongProgressBar } from "./spotify-song-progress";
-import { SpotifyWidgetClientSkeleton } from "@/components/spotify-widget-client-skeleton";
+import { SpotifyWidgetClientSkeleton } from "@/components/spotify/spotify-widget-client-skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";

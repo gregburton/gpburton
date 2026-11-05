@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 
 import ProjectCard from "@/components/project-card";
-import projects from "@/lib/projects";
+import projects from "@/data/projects";
 
 export const metadata: Metadata = {
   title: "Projects | gpburton",

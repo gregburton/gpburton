@@ -42,6 +42,15 @@ export default function MobileNavigation() {
             </li>
             <li>
               <Link
+                href="/gaming"
+                className={cn(buttonVariants({ variant: "outline" }), "w-full")}
+                onClick={() => setIsMobileOpen(false)}
+              >
+                Gaming
+              </Link>
+            </li>
+            <li>
+              <Link
                 href="/blog"
                 className={cn(buttonVariants({ variant: "outline" }), "w-full")}
                 onClick={() => setIsMobileOpen(false)}

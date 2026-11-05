@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
+import { format } from "date-fns";
 
 import { getAllPosts } from "@/lib/blog-utils";
 import {
@@ -50,9 +51,11 @@ export default function BlogPage() {
                       {post.title}{" "}
                       <span className="text-sm">- {post.readingTime}</span>
                     </CardTitle>
-                    <CardDescription>{post.publishedAt}</CardDescription>
+                    <CardDescription>
+                      {format(new Date(post.publishedAt), "MMM Mo, yyyy")}
+                    </CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="pt-3">
                     <p>{post.summary}</p>
                   </CardContent>
                 </div>

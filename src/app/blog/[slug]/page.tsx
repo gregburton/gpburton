@@ -2,9 +2,11 @@ import { Suspense } from "react";
 import Script from "next/script";
 import { evaluate, type MDXRemoteOptions } from "next-mdx-remote-client/rsc";
 import remarkGfm from "remark-gfm";
-import { getAllPosts, getPostBySlug, getSource } from "@/lib/blog-utils";
+import { format } from "date-fns";
+
 import { mdxComponents } from "@/components/mdx-components";
 import ErrorComponent from "@/components/error-component";
+import { getAllPosts, getPostBySlug, getSource } from "@/lib/blog-utils";
 
 interface BlogPostPageProps {
   params: Promise<{ slug: string }>;
@@ -76,7 +78,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         }}
       />
       <h1 className="my-1!">{frontmatter.title}</h1>
-      <span>{frontmatter.publishedAt}</span>
+      <span>{format(new Date(frontmatter.publishedAt), "MMM Mo, yyyy")}</span>
       <Suspense fallback={<p>Loading post…</p>}>{content}</Suspense>
     </article>
   );

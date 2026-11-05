@@ -206,6 +206,36 @@ type Link = {
   url: string;
 };
 
+export type ClipCategory = "funny" | "bugs" | "highlights";
+
+export type Clip = {
+  /** A stable identifier for React keys and linking to individual clips */
+  id: string;
+  /** The name of the clip */
+  title: string;
+  /** A short description about the clip */
+  description?: string;
+  /** The original Medal URL */
+  medalUrl: string;
+  /**
+   * Don't assume every share URL can be used directly as an iframe source.
+   * Medal has historically had differences between its redirect URLs and iframe embed URLs.
+   */
+  embedUrl?: string;
+  /** Optional custom thumbnail */
+  thumbnailUrl?: string;
+  /** A broad classification for filtering. */
+  category: ClipCategory;
+  /** The game the clip came from */
+  game: string;
+  /** A way to provide more granular searchable metadata */
+  tags: string[];
+  /** Enables chronological sorting */
+  createdAt: string;
+  /** Should this clip be highlighted? */
+  featured?: boolean;
+};
+
 export type ToolProps = {
   image: string;
   altText: string;
@@ -213,11 +243,6 @@ export type ToolProps = {
   subtitle: string;
   url: string;
   category: string;
-};
-
-export type MobileNavProps = {
-  isOpen: boolean;
-  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 export type StackHighlightProps = {

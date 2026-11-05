@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Mail } from "lucide-react";
 import { cn } from "cn";
+import { format } from "date-fns";
 
 import { buttonVariants } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -29,11 +30,11 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import StackHighlight from "@/components/stack-highlight";
-import SpotifyWidget from "@/components/spotify-widget";
+import SpotifyWidget from "@/components/spotify/spotify-widget";
 
-import tools from "@/lib/tools";
+import tools from "@/data/tools";
+import projects from "@/data/projects";
 import { getAllPosts } from "@/lib/blog-utils";
-import projects from "@/lib/projects";
 
 export const metadata: Metadata = {
   title: "Home | gpburton",
@@ -305,7 +306,8 @@ export default function Home() {
                 <div className="flex flex-col md:flex-row items-baseline gap-x-2">
                   <h3 className="text-lg font-semibold">{post.title}</h3>
                   <p className="text-muted-foreground text-sm">
-                    {post.publishedAt} | {post.readingTime}
+                    {format(new Date(post.publishedAt), "MMM Mo, yyyy")} |{" "}
+                    {post.readingTime}
                   </p>
                 </div>
                 <p>{post.summary}</p>

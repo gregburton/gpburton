@@ -104,6 +104,7 @@ export function ContactForm() {
                   <Input
                     {...field.props}
                     id="email"
+                    type="email"
                     value={field.input ?? ""}
                     aria-invalid={field.errors !== null}
                     placeholder="your@email.com"

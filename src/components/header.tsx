@@ -31,6 +31,14 @@ export default function Header() {
                 </NavigationMenuItem>
                 <NavigationMenuItem>
                   <NavigationMenuLink
+                    render={<Link href="/gaming" />}
+                    className={navigationMenuTriggerStyle()}
+                  >
+                    Gaming
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <NavigationMenuLink
                     render={<Link href="/blog" />}
                     className={navigationMenuTriggerStyle()}
                   >
